@@ -62,12 +62,7 @@ class Review:
 
     def editorial(self):
         """ Returns the text of the review. """
-        review_html = self.soup.find(class_='editorial')
-        review_html = replace_breaks(review_html).find_all('p')
-        review_text = ''
-        for paragraph in review_html:
-            review_text += paragraph.text + '\n\n'
-        return review_text
+        return self.soup.find(class_='review-text').get_text()
 
     def cover(self):
         """ Returns the link to the album cover. """
@@ -87,8 +82,7 @@ class Review:
 
     def label(self):
         """ Returns the name of the record label that released the album. """
-        label = self.soup.find(class_='info').h3.get_text()
-        label = label[:label.index(';')].strip()
+        label = self.soup.find(class_='label-list').get_text()
         return label
 
     def year(self):
@@ -97,12 +91,12 @@ class Review:
         In case of a reissue album, the year of original release as well as
         the year of the reissue is given separated by '/'.
         """
-        year = self.soup.find(class_='info').h3.get_text()
-        year = year[year.index(';')+1:].strip()
+        year = self.soup.find(class_='year').contents[1].get_text()
         return year
+
     def _json_safe_dict(self):
         """
-        Returns a dictionary representation of object where 
+        Returns a dictionary representation of object where
         the soup key's value's special characters are escaped
         """
         d = self.__dict__.copy()
@@ -169,7 +163,7 @@ class MultiReview(Review):
 
     def _json_safe_dict(self):
         """
-        Returns a dictionary representation of object where 
+        Returns a dictionary representation of object where
         the soup key's value's special characters are escaped
         """
         d = self.__dict__.copy()
@@ -215,7 +209,7 @@ def search(artist, album):
                       data=None,
                       headers={'User-Agent': 'michalczaplinski/pitchfork-v0.1'})
     response_text = urlopen(request).read()
-    soup = BeautifulSoup(response_text)
+    soup = BeautifulSoup(response_text, "lxml")
 
     # check if the review does not review multiple albums
     if soup.find(class_='review-multi') is None:
